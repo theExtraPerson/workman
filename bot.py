@@ -1,9 +1,8 @@
 # Main bot logic and message handling
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, Bot
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 import os
-from services.service_handler import generate_service_image
 from database.models import Order, Service
 from database.db_setup import init_db, SessionLocal
 from dotenv import load_dotenv
@@ -13,6 +12,7 @@ load_dotenv()
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
+bot = Bot(TELEGRAM_BOT_TOKEN) 
 app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
   
 
