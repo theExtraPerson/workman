@@ -1,6 +1,6 @@
 # SQLAlchemy Models for database
 
-from SQLAlchemy import Column, Integer, String, Text, Float
+from sqlalchemy import Column, Integer, String, Text, Float
 from database.db_setup import Base
 
 class Service(Base):

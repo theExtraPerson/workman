@@ -2,27 +2,27 @@
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
-from config import TELEGRAM_BOT_TOKEN, WEBHOOK_URL
+import os
 from services.service_handler import generate_service_image
 from database.models import Order, Service
 from database.db_setup import init_db, SessionLocal
 
-WEBHOOK_URL = "WEBHOOK_URL"
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
-
-    
+  
 
 # initialise database
 init_db()
 session = SessionLocal()
 
-async def start(update: Update, context):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
         "Please /services to see available services:"
     )
 
-async def list_services(update: Update, context):
+async def list_services(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     services = session.query(Service).all()
     for service in services:
         keyboard = [[InlineKeyboardButton("Order Now", callback_data=f"order_{service.id}")]]
@@ -53,7 +53,7 @@ async def handle_order(update: Update, context):
         "Your order has been placed. Please wait for a response from the service provider."
     )
 
-async def set_webhook():
+async def set_webhook() -> None:
     await app.set_webhook(url=WEBHOOK_URL + "/api/webhook")
 
 
