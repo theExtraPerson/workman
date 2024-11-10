@@ -19,6 +19,7 @@ class ServiceImageGenerator:
 
     @staticmethod
     def generate_service_image(
+        service_id: str,
         service_name: str,
         description: str,
         price: float,
@@ -57,6 +58,7 @@ class ServiceImageGenerator:
             raise RuntimeError(f"Failed to generate service image: {str(e)}")
 
 def add_service(
+    service_id: str,    
     service_name: str,
     description: str,
     price: float,
@@ -68,6 +70,7 @@ def add_service(
     """
     try:
         image_path = ServiceImageGenerator.generate_service_image(
+            service_id=service_id,
             service_name=service_name,
             description=description,
             price=price,
@@ -77,7 +80,8 @@ def add_service(
 
         with get_db() as db:
             new_service = Service(
-                name=service_name,
+                service_id=service_id,
+                service_name=service_name,
                 description=description,
                 price=price,
                 image_path=image_path,
@@ -128,7 +132,8 @@ def update_service_availability(
 
             # Regenerate image with updated location information
             service.image_path = ServiceImageGenerator.generate_service_image(
-                service_name=service.name,
+                service_id=service.service_id,
+                service_name=service.service_namename,
                 description=service.description,
                 price=service.price,
                 location=location,
