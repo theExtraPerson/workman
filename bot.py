@@ -263,18 +263,18 @@ async def get_service(service_id: int):
 
 
 # Startup and shutdown events
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Set webhook on startup"""
-    await bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
-    print("webhook has been set")
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     """Set webhook on startup"""
+#     await bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
+#     print("webhook has been set")
 
-    yield
+#     yield
 
-    """Close database connection on shutdown"""
-    db.close()
+#     """Close database connection on shutdown"""
+#     db.close()
 
-app = FastAPI(lifespan=lifespan)
+# app = FastAPI(lifespan=lifespan)
 
 if __name__ == "__main__":
     import uvicorn
