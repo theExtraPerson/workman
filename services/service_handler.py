@@ -36,7 +36,7 @@ class ServiceImageGenerator:
             # Use a better font if available
             try:
                 font = ImageFont.truetype("arial.ttf", 20)
-            except:
+            except  Exception:
                 font = ImageFont.load_default()
 
             # Draw service information with location
@@ -55,7 +55,7 @@ class ServiceImageGenerator:
             return str(image_path)
 
         except Exception as e:
-            raise RuntimeError(f"Failed to generate service image: {str(e)}")
+            raise RuntimeError(f"Failed to generate service image: {str(e)}") from e
 
 def add_service(
     service_id: str,    
@@ -95,7 +95,7 @@ def add_service(
             db.refresh(new_service)
             return new_service
     except Exception as e:
-        raise RuntimeError(f"Failed to add service: {str(e)}")
+        raise RuntimeError(f"Failed to add service: {str(e)}") from e
 
 def get_services_by_location(city: str, country: str) -> List[Service]:
     """
@@ -103,15 +103,18 @@ def get_services_by_location(city: str, country: str) -> List[Service]:
     """
     try:
         with get_db() as db:
-            services = db.query(Service).filter(
-                Service.city == city,
-                Service.country == country,
-                Service.is_active == True,
-                Service.is_available_in_location == True
-            ).all()
-            return services
+            return (
+                db.query(Service)
+                .filter(
+                    Service.city == city,
+                    Service.country == country,
+                    Service.is_active == True,
+                    Service.is_available_in_location == True,
+                )
+                .all()
+            )
     except Exception as e:
-        raise RuntimeError(f"Failed to fetch services: {str(e)}")
+        raise RuntimeError(f"Failed to fetch services: {str(e)}") from e
 
 def update_service_availability(
     service_id: int,
@@ -144,7 +147,7 @@ def update_service_availability(
             db.refresh(service)
             return service
     except Exception as e:
-        raise RuntimeError(f"Failed to update service availability: {str(e)}")
+        raise RuntimeError(f"Failed to update service availability: {str(e)}") from e
 
 def check_service_availability(service_id: int, city: str, country: str) -> bool:
     """
@@ -161,4 +164,4 @@ def check_service_availability(service_id: int, city: str, country: str) -> bool
             ).first()
             return bool(service)
     except Exception as e:
-        raise RuntimeError(f"Oops, this service is unavailabile: {str(e)}")
+        raise RuntimeError(f"Oops, this service is unavailabile: {str(e)}") from e

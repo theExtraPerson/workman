@@ -191,8 +191,9 @@ async def handle_service_selection(update: Update, context: ContextTypes.DEFAULT
 
 async def handle_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Handle order comfirmation"""
-    query = update.callback_query
+    
     if update.message.text == 'Confirm ✅':
+        query = update.callback_query
         service_id = int(query.data.split("_")[1])
         user_id = update.effective_user.id
         service = db.query(Service).filter(Service.id == service_id).first()
@@ -334,7 +335,7 @@ async def create_service(service: ServiceCreate):
             return new_service
         except Exception as e:
             db.rollback()
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
         
 
 @app.get("/services/", response_model=ServiceCreate)
@@ -343,21 +344,20 @@ async def get_services():
     try:
         return db.query(Service).all()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
     
 @app.get("/services/{service_id}", response_model=ServiceCreate)
 async def get_service(service_id: int):
     """Get a specific service by ID"""
-    service = db.query(Service).filter(Service.id == service_id).first()
-    if not service:
+    if service := db.query(Service).filter(Service.id == service_id).first():
+        return service
+    else:
         raise HTTPException(status_code=404, detail="Service not found")
-    return service
 
 @app.middleware("http")
 async def db_session_middleware(request: Request, call_next):
     try:
-        response = await call_next(request)
-        return response
+        return await call_next(request)
     finally:
         db.close()
 
