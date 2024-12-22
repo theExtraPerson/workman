@@ -22,3 +22,4 @@ class Order(Base):
     service_id = Column(Integer, nullable=False)
     user_id = Column(Integer, nullable=False)
     status = Column(String, default='pending', nullable=False)
+    

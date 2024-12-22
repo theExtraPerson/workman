@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     WEBHOOK_URL: str
     TELEGRAM_BOT_TOKEN: str
     DATABASE_URL: str
+    CHANNEL_ID: str
 
     class Config:
         env_file = ".env"
@@ -12,4 +13,4 @@ class Settings(BaseSettings):
 try:
     settings = Settings()
 except Exception as e:
-    raise RuntimeError(f"Configuration Error: {str(e)}")  
+    raise RuntimeError(f"Configuration Error: {str(e)}") from e
