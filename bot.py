@@ -18,9 +18,16 @@ from typing import List, Optional
 from fastapi import FastAPI, Request, APIRouter, HTTPException
 from contextlib import asynccontextmanager, contextmanager
 import logging
-from services.service_handler import get_services_by_location
+from services.service_handler import ServiceManager, SQLiteServiceRepository, PILImageGenerator
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+
+# Initialize service manager with SQLite repository and image generator
+repository = SQLiteServiceRepository()
+image_generator = PILImageGenerator()
+service_manager = ServiceManager(repository=repository, image_generator=image_generator)
+
 
 # Enable logging
 logging.basicConfig(
@@ -129,7 +136,7 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             location_type = "manual"
 
         with get_db() as db:
-            services = get_services_by_location(
+            services = service_manager.get_services_by_location(
                 db=db,
                 city=context.user_data.get('manual_location', ''),
                 country=''
@@ -247,7 +254,7 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def set_bot_commands():
     """Set bot commands in Telegram"""
     commands = [
-        ("start", "Start a new service request"),
+        ("start", "Start Service Request 🛠"),
         ("services", "Search available services"),
         ("order", "Order a service"),
         ("cancel", "Canel current operation")
@@ -264,7 +271,7 @@ conv_handler = ConversationHandler(
     states={
         DESCRIBE_SERVICE: [
             MessageHandler(
-                filters.TEXT & ~filters.COMMAND & ~filters.Regex('^Start Service Request 🛠$'), 
+                filters.TEXT & ~filters.COMMAND & ~filters.Regex('^Start Service Request 🛠'), 
                 handle_service_description
             )
         ],

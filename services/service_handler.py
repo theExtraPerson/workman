@@ -62,7 +62,7 @@ class ServiceRepository(Protocol):
     def check_availability(self, service_id: int, city: str, country: str) -> bool:
         pass
   
-class ServiceDatabase:
+class SQLiteServiceRepository(ServiceRepository):
     def __init__(self, db_name: str = "services.db"):
         self.db_name = db_name
         self.init_database()
@@ -85,6 +85,18 @@ class ServiceDatabase:
                 )
             """)
             conn.commit()
+
+    def add(self, service: Service) -> Service:
+        """Add a new service to the database."""
+        with sqlite3.connect(self.db_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO services (provider_id, service_name, description, price, image_url, is_active, location_city, location_country)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (service.provider_id, service.service_name, service.description, service.price,
+                  service.image_path, service.is_active, service.location.city, service.location.country))
+            conn.commit()
+            return service  # Return the added service
 
 # Custom Exceptions
 class ServiceOperationError(Exception):
@@ -196,3 +208,54 @@ class ServiceBotHandler:
     async def start_add_service(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Please enter the name of your service:")
         return self.SERVICE_NAME
+
+    async def handle_service_name(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        """Handle input for the service name."""
+        context.user_data['service_name'] = update.message.text
+        await update.message.reply_text("Please provide a description for your service:")
+        return self.SERVICE_DESCRIPTION
+
+    async def handle_service_description(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        """Handle input for the service description."""
+        context.user_data['service_description'] = update.message.text
+        await update.message.reply_text("Please enter the price for your service:")
+        return self.SERVICE_PRICE
+
+    async def handle_service_price(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        """Handle input for the service price."""
+        try:
+            price = float(update.message.text)
+            context.user_data['service_price'] = price
+            await update.message.reply_text("Please upload an image for your service (or type 'skip'):")
+            return self.SERVICE_IMAGE
+        except ValueError:
+            await update.message.reply_text("Invalid price. Please enter a numeric value:")
+            return self.SERVICE_PRICE
+
+    async def handle_service_image(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+        """Handle input for the service image."""
+        if update.message.text.lower() == 'skip':
+            image_path = None  # No image provided
+        else:
+            # Assuming you have logic to handle image uploads
+            image_path = update.message.photo[-1].file_id  # Example of getting photo file_id
+
+        # Create a new Service instance and save it
+        new_service = Service(
+            provider_id=1,  # Replace with actual provider ID
+            service_name=context.user_data['service_name'],
+            description=context.user_data['service_description'],
+            price=context.user_data['service_price'],
+            image_path=image_path,
+            is_active=True,
+            location=ServiceLocation(city="Example City", country="Example Country"),
+            created_at=datetime.now()
+        )
+
+        try:
+            self.service_manager.add_service(new_service)
+            await update.message.reply_text("Service registered successfully!")
+        except Exception as e:
+            await update.message.reply_text(f"Failed to register service: {str(e)}")
+
+        return ConversationHandler.END
