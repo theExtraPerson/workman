@@ -124,7 +124,10 @@ class PILImageGenerator(ImageGenerationStrategy):
 
     @classmethod
     def ensure_image_directory(cls):
-        cls.IMAGE_DIR.mkdir(parents=True, exist_ok=True)
+        if not cls.IMAGE_DIR.exists():
+            cls.IMAGE_DIR.parent.mkdir(parents=True, exist_ok=True)
+        cls.IMAGE_DIR.mkdir(exist_ok=True)
+        
 
     def get_font(self) -> ImageFont.FreeTypeFont:
         try:
